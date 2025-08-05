@@ -1,0 +1,48 @@
+using BepInEx;
+using UnboundLib;
+using UnboundLib.Cards;
+namespace RoundsModdedCard
+{
+    using HarmonyLib;
+    using CardChoiceSpawnUniqueCardPatch.CustomCategories;
+
+    namespace RoundsModdedCards
+    {
+        // Required dependencies
+        [BepInDependency("com.willis.rounds.unbound", BepInDependency.DependencyFlags.HardDependency)]
+        [BepInDependency("pykess.rounds.plugins.moddingutils", BepInDependency.DependencyFlags.HardDependency)]
+        [BepInDependency("pykess.rounds.plugins.cardchoicespawnuniquecardpatch", BepInDependency.DependencyFlags.HardDependency)]
+
+        // Declares this as a BepInEx mod
+        [BepInPlugin(ModId, ModName, Version)]
+        [BepInProcess("Rounds.exe")]
+        public class RoundsModdedCards : BaseUnityPlugin
+        {
+            // Mod info
+            private const string ModId = "com.yourname.rounds.roundsmoddedcards";
+            private const string ModName = "Rounds Modded Cards";
+            public const string Version = "1.0.0";
+
+            // Mod initials (used for card debug/logging)
+            public const string ModInitials = "RMC";
+
+            // Static reference to the mod instance
+            public static RoundsModdedCards instance { get; private set; }
+
+            void Awake()
+            {
+                // Register any Harmony patches here
+                var harmony = new Harmony(ModId);
+                harmony.PatchAll();
+            }
+
+            void Start()
+            {
+                instance = this;
+
+                // Register cards here
+                CustomCard.BuildCard<Christian>(); // You'll create this card later
+            }
+        }
+    }
+}
