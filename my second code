@@ -1,0 +1,89 @@
+using System.Collections.Generic;
+using UnboundLib.Cards;
+using UnityEngine;
+using ModdingUtils.MonoBehaviours;
+using UnboundLib;
+
+public class Christian : CustomCard
+{
+    protected override string GetTitle()
+    {
+        return "Christian";
+    }
+
+    protected override string GetDescription()
+    {
+        return "Your faith is your fortress. Blocking fortifies your health and empowers your presence—but weakens your strength.";
+    }
+
+    protected override GameObject GetCardArt()
+    {
+        return null; // Optional: replace with art prefab if available
+    }
+
+    protected override CardInfo.Rarity GetRarity()
+    {
+        return CardInfo.Rarity.Rare;
+    }
+
+    protected override CardThemeColor.CardThemeColorType GetTheme()
+    {
+        return CardThemeColor.CardThemeColorType.DefensiveBlue;
+    }
+
+    protected override CardInfoStat[] GetStats()
+    {
+        return new CardInfoStat[]
+        {
+            new CardInfoStat()
+            {
+                positive = true,
+                stat = "HP per block",
+                amount = "+10%",
+                simepleAmount = CardInfoStat.SimpleAmount.notAssigned
+            },
+            new CardInfoStat()
+            {
+                positive = true,
+                stat = "Bullet Size",
+                amount = "Stacks per block",
+                simepleAmount = CardInfoStat.SimpleAmount.notAssigned
+            },
+            new CardInfoStat()
+            {
+                positive = false,
+                stat = "Damage",
+                amount = "Halved on block",
+                simepleAmount = CardInfoStat.SimpleAmount.notAssigned
+            },
+            new CardInfoStat()
+            {
+                positive = false,
+                stat = "Movement Speed",
+                amount = "Slows per block",
+                simepleAmount = CardInfoStat.SimpleAmount.notAssigned
+            }
+        };
+    }
+
+    public override void OnAddCard(Player player, Gun gun, GunAmmo ammo, CharacterData data, HealthHandler health, Gravity gravity, Block block, CharacterStatModifiers stats)
+    {
+        player.gameObject.AddComponent<ChristianEffect>();
+        UnityEngine.Debug.Log("[CMC][Card] Christian has been added to player " + player.playerID);
+    }
+
+    public override void OnRemoveCard(Player player, Gun gun, GunAmmo ammo, CharacterData data, HealthHandler health, Gravity gravity, Block block, CharacterStatModifiers stats)
+    {
+        var effect = player.gameObject.GetComponent<ChristianEffect>();
+        if (effect != null)
+        {
+            GameObject.Destroy(effect);
+        }
+        UnityEngine.Debug.Log("[CMC][Card] Christian has been removed from player " + player.playerID);
+    }
+
+    public override string GetModName()
+    {
+        return "CMC"; // Christian Mod Cards
+    }
+}
