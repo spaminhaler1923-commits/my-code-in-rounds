@@ -1,0 +1,90 @@
+using System;
+using System.Collections;
+using UnityEngine;
+using UnboundLib.GameModes;
+using ModdingUtils.Extensions;
+
+public class ChristianEffect : MonoBehaviour
+{
+    private Player player;
+    private CharacterData data;
+    private Gun gun;
+
+    private Vector3 originalScale;
+    private float originalProjectileSize;
+
+    private float sizeBoost = 0.25f;
+    private float bulletSizeBoost = 0.25f;
+
+    private void Awake()
+    {
+        player = GetComponentInParent<Player>();
+        data = player?.data;
+        gun = data?.weaponHandler?.gun;
+
+        if (player != null)
+        {
+            originalScale = player.transform.localScale;
+        }
+
+        if (gun != null)
+        {
+            originalProjectileSize = gun.projectileSize;
+        }
+    }
+
+    private void Start()
+    {
+        Block block = GetComponent<Block>();
+        if (block != null)
+        {
+            block.BlockAction += ApplyBoost;
+        }
+
+        if (data?.healthHandler != null)
+        {
+            data.healthHandler.reviveAction += ResetSize;
+        }
+
+        // 🟢 Make sure the round-end reset actually runs
+        GameModeManager.AddHook(GameModeHooks.HookRoundEnd, OnRoundEnd);
+    }
+
+    private void OnDisable()
+    {
+        Block block = GetComponent<Block>();
+        if (block != null)
+        {
+            block.BlockAction -= ApplyBoost;
+        }
+
+        if (data?.healthHandler != null)
+        {
+            data.healthHandler.reviveAction -= ResetSize;
+        }
+
+        GameModeManager.RemoveHook(GameModeHooks.HookRoundEnd, OnRoundEnd);
+    }
+
+    private void ApplyBoost(BlockTrigger.BlockTriggerType trigger)
+    {
+        if (player == null || data == null || gun == null) return;
+
+        player.transform.localScale += Vector3.one * sizeBoost;
+        gun.projectileSize += bulletSizeBoost;
+    }
+
+    private void ResetSize()
+    {
+        if (player == null || data == null || gun == null) return;
+
+        player.transform.localScale = originalScale;
+        gun.projectileSize = originalProjectileSize;
+    }
+
+    private IEnumerator OnRoundEnd(IGameModeHandler gm)
+    {
+        ResetSize();
+        yield break;
+    }
+}
