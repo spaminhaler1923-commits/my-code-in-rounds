@@ -12,29 +12,37 @@ public class ChristianEffect : MonoBehaviour
 
     private Vector3 originalScale;
     private float originalProjectileSize;
+    private float originalHealth;
 
-    private float sizeBoost = 0.25f;
-    private float bulletSizeBoost = 0.25f;
+    private float bulletSizeBoost = 2f; // Increased to 2 each block
+    private float healthBoost = 2f;     // Increased to 2 each block
+    private float sizeBoost = 0.1f;     // Player gets slightly bigger each block
 
-    private void Awake()
+    private IEnumerator Start()
     {
-        player = GetComponentInParent<Player>();
-        data = player?.data;
-        gun = data?.weaponHandler?.gun;
-
-        if (player != null)
+        // Wait until player is properly assigned
+        while (player == null)
         {
-            originalScale = player.transform.localScale;
+            player = GetComponentInParent<Player>();
+            if (player != null)
+            {
+                data = player.data;
+                gun = data?.weaponHandler?.gun;
+            }
+            yield return null;
         }
 
+        originalScale = player.transform.localScale;
         if (gun != null)
         {
             originalProjectileSize = gun.projectileSize;
         }
-    }
 
-    private void Start()
-    {
+        if (data != null)
+        {
+            originalHealth = data.maxHealth;
+        }
+
         Block block = GetComponent<Block>();
         if (block != null)
         {
@@ -43,10 +51,9 @@ public class ChristianEffect : MonoBehaviour
 
         if (data?.healthHandler != null)
         {
-            data.healthHandler.reviveAction += ResetSize;
+            data.healthHandler.reviveAction += ResetStats;
         }
 
-        // 🟢 Make sure the round-end reset actually runs
         GameModeManager.AddHook(GameModeHooks.HookRoundEnd, OnRoundEnd);
     }
 
@@ -60,7 +67,7 @@ public class ChristianEffect : MonoBehaviour
 
         if (data?.healthHandler != null)
         {
-            data.healthHandler.reviveAction -= ResetSize;
+            data.healthHandler.reviveAction -= ResetStats;
         }
 
         GameModeManager.RemoveHook(GameModeHooks.HookRoundEnd, OnRoundEnd);
@@ -68,23 +75,43 @@ public class ChristianEffect : MonoBehaviour
 
     private void ApplyBoost(BlockTrigger.BlockTriggerType trigger)
     {
-        if (player == null || data == null || gun == null) return;
+        Debug.Log("ApplyBoost triggered");
 
-        player.transform.localScale += Vector3.one * sizeBoost;
+        if (player == null)
+        {
+            Debug.LogError("ApplyBoost: player is null");
+            return;
+        }
+        if (data == null)
+        {
+            Debug.LogError("ApplyBoost: data is null");
+            return;
+        }
+        if (gun == null)
+        {
+            Debug.LogError("ApplyBoost: gun is null");
+            return;
+        }
+
         gun.projectileSize += bulletSizeBoost;
+        data.maxHealth += healthBoost;
+        data.health += healthBoost;
+        player.transform.localScale += Vector3.one * sizeBoost;
     }
 
-    private void ResetSize()
+    private void ResetStats()
     {
         if (player == null || data == null || gun == null) return;
 
-        player.transform.localScale = originalScale;
         gun.projectileSize = originalProjectileSize;
+        data.maxHealth = originalHealth;
+        data.health = originalHealth;
+        player.transform.localScale = originalScale;
     }
 
     private IEnumerator OnRoundEnd(IGameModeHandler gm)
     {
-        ResetSize();
+        ResetStats();
         yield break;
     }
 }
